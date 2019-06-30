@@ -10,6 +10,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -34,6 +35,26 @@ public class BlogApiTest {
 
     @MockBean
     private DataFinder finder;
+
+    @Test
+    public void Check_Api_should_return_status_404_when_user_not_exist_in_db() throws Exception {
+        mvc.perform(post("/blog/user/id/{id}", 50))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void Check_Api_should_return_status_409_when_exception_DataIntegrityViolation_is_raised() throws Exception {
+        UserRequest user = new UserRequest();
+        String content = writeJson(user);
+
+        Mockito.when(blogService.createUser(user)).thenThrow(DataIntegrityViolationException.class);
+
+        mvc.perform(post("/blog/user")
+                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                .accept(MediaType.APPLICATION_JSON_UTF8)
+                .content(content))
+                .andExpect(status().isConflict());
+    }
 
     @Test
     public void postBlogUserShouldResponseWithStatusCreatedAndNewUserId() throws Exception {
