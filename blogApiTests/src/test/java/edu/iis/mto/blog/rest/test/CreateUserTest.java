@@ -25,4 +25,19 @@ public class CreateUserTest extends FunctionalTests {
                    .when()
                    .post(USER_API);
     }
+
+    @Test
+    public void Check_Api_returns_status_conflict_when_duplicate_emails() {
+        JSONObject jsonObj = new JSONObject().put("email", "tracy@domain.com");
+        RestAssured.given()
+                .accept(ContentType.JSON)
+                .header("Content-Type", "application/json;charset=UTF-8")
+                .body(jsonObj.toString())
+                .expect()
+                .log()
+                .all()
+                .statusCode(HttpStatus.SC_CONFLICT)
+                .when()
+                .post(USER_API);
+    }
 }
